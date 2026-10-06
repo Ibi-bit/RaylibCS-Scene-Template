@@ -34,17 +34,15 @@ public sealed class Game : IDisposable
         // Sets up Dear ImGui with the raylib backend and a dark theme.
         rlImGui.Setup(darkTheme: true);
 
-        _scenes
-            .Register<TitleScene>(static () => new TitleScene())
-            .Register<GameScene>(static () => new GameScene());
+        _scenes.Register<GameScene>(static () => new GameScene());
 
         _debugUI = new DebugUI(_scenes, config.ShowDebugWindow);
     }
 
     public void Run()
     {
-        // Boot straight into a specific scene (config or test hook env var).
-        _scenes.ChangeTo(SceneForBootScene);
+        // Start in the editable starter scene.
+        _scenes.ChangeTo<GameScene>();
         _scenes.ApplyPending();
 
         // Test/CI hook: GAME_SHOT_PATH=/path/to.png [GAME_SHOT_FRAME=120] makes
@@ -61,7 +59,7 @@ public sealed class Game : IDisposable
         {
             float dt = Raylib.GetFrameTime();
 
-            _debugUI.ProcessShortcuts();
+            bool screenshotRequested = _debugUI.ProcessShortcuts();
 
             _scenes.Current?.Update(dt);
 
@@ -78,11 +76,18 @@ public sealed class Game : IDisposable
             _debugUI.Draw(_scenes.Current);
             rlImGui.End();
 
-            Raylib.EndDrawing();
+            int currentFrame = frameCount + 1;
+            bool testScreenshotDue = shotPath is not null && currentFrame == shotFrame;
+            if (testScreenshotDue || screenshotRequested)
+            {
+                string screenshotPath = testScreenshotDue
+                    ? shotPath!
+                    : Path.Combine(AppContext.BaseDirectory, $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+                Raylib.TakeScreenshot(screenshotPath);
+            }
 
-            frameCount++;
-            if (shotPath is not null && frameCount == shotFrame)
-                Raylib.TakeScreenshot(shotPath);
+            Raylib.EndDrawing();
+            frameCount = currentFrame;
 
             if (firstFrame)
             {
@@ -102,10 +107,4 @@ public sealed class Game : IDisposable
         Raylib.CloseAudioDevice();
         Raylib.CloseWindow();
     }
-
-    /// <summary>Boot target from <see cref="GameConfig.BootScene"/>.</summary>
-    private Type SceneForBootScene =>
-        _config.BootScene.Equals("Game", StringComparison.OrdinalIgnoreCase)
-            ? typeof(GameScene)
-            : typeof(TitleScene);
 }

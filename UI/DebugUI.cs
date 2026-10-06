@@ -1,7 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
 using My2DGame.Core;
-using My2DGame.Scenes;
 using Raylib_cs;
 
 namespace My2DGame.UI;
@@ -26,12 +25,11 @@ public sealed class DebugUI
     }
 
     /// <summary>Global hotkeys, checked before a scene's Update.</summary>
-    public void ProcessShortcuts()
+    public bool ProcessShortcuts()
     {
         if (Raylib.IsKeyPressed(KeyboardKey.F1)) _showDemoWindow = !_showDemoWindow;
         if (Raylib.IsKeyPressed(KeyboardKey.F2)) _showDebugWindow = !_showDebugWindow;
-        if (Raylib.IsKeyPressed(KeyboardKey.F10))
-            Raylib.TakeScreenshot(Path.Combine(AppContext.BaseDirectory, $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png"));
+        return Raylib.IsKeyPressed(KeyboardKey.F10);
     }
 
     public void Draw(Scene? scene)
@@ -49,19 +47,11 @@ public sealed class DebugUI
             ImGui.Text($"Window: {Raylib.GetScreenWidth()} x {Raylib.GetScreenHeight()}   Time: {Raylib.GetTime():F1}s");
             ImGui.Text($"Mouse (screen): {Raylib.GetMousePosition()}");
 
-            switch (scene)
-            {
-                case GameScene game:
-                    DrawGameScenePanel(game);
-                    break;
+            ImGui.Separator();
 
-                case TitleScene:
-                    ImGui.Separator();
-                    if (ImGui.Button("Start Game")) _scenes.ChangeTo<GameScene>();
-                    ImGui.SameLine();
-                    if (ImGui.Button("Quit")) Raylib.CloseWindow();
-                    break;
-            }
+            if (ImGui.Button("Restart scene")) _scenes.RestartCurrent();
+            ImGui.SameLine();
+            if (ImGui.Button("Quit")) Raylib.CloseWindow();
 
             ImGui.Separator();
 
@@ -74,27 +64,4 @@ public sealed class DebugUI
         ImGui.End();
     }
 
-    private void DrawGameScenePanel(GameScene game)
-    {
-        Vector2 worldMouse = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), game.Camera);
-        ImGui.Text($"Mouse (world): ({worldMouse.X:F0}, {worldMouse.Y:F0})   Zoom: {game.Camera.Zoom:F2}");
-        ImGui.Text($"Player: ({game.Player.Position.X:F0}, {game.Player.Position.Y:F0})");
-        ImGui.Text($"Coins: {game.Score} / {game.CoinCount}");
-        ImGui.Separator();
-
-        bool showGrid = game.ShowGrid;
-        if (ImGui.Checkbox("Show grid", ref showGrid)) game.ShowGrid = showGrid;
-
-        bool follow = game.CameraFollow;
-        if (ImGui.Checkbox("Follow player", ref follow)) game.CameraFollow = follow;
-
-        bool showHud = game.ShowHud;
-        if (ImGui.Checkbox("Show HUD", ref showHud)) game.ShowHud = showHud;
-
-        ImGui.Separator();
-
-        if (ImGui.Button("Restart scene (R)")) _scenes.RestartCurrent();
-        ImGui.SameLine();
-        if (ImGui.Button("Back to title")) _scenes.ChangeTo<TitleScene>();
-    }
 }

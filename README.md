@@ -1,91 +1,51 @@
-# My 2D Game — raylib + Dear ImGui template (C#)
+# 2D Game Starter
 
-A clean, ready-to-extend template for 2D games in C# using:
+A small C# game foundation using raylib for windowing, input, rendering, and audio, with Dear ImGui for development tools.
 
-| Library   | Role                     | NuGet package | Version |
-|-----------|--------------------------|---------------|---------|
-| raylib    | Window, input, rendering, audio | `Raylib-cs`  | 7.0.1 (pinned) |
-| Dear ImGui| Immediate-mode debug UI / editor tools | `rlImgui-cs` + `ImGui.NET` | 3.2.0 / 1.91.6.1 |
-
-> **Version pinning:** `rlImgui-cs 3.2.0` was built against `Raylib-cs 7.0.1`.
-> Keep the pair in lockstep — a newer raylib may change the native ABI that the
-> ImGui backend depends on.
-
-## Run it
+## Run
 
 ```bash
-cd My2DGame
 dotnet run
 ```
 
-`gameconfig.json` (window size, vsync, target FPS, boot scene, ...) is generated
-next to the executable on first run — edit it there, no recompile needed.
-`BootScene` can be `"Title"` or `"Game"` to skip the menu while iterating.
+The default window settings are defined in `Core/GameConfig.cs`. On first run, `gameconfig.json` is written next to the executable; edit it to adjust the window size, title, VSync, and debug window visibility.
 
-For CI/screenshots there's a test hook: set the `GAME_SHOT_PATH` env var (and
-optionally `GAME_SHOT_FRAME`, default 120) and the game saves a screenshot to
-your current working directory after that many frames, then keeps running.
+For automated screenshots, set `GAME_SHOT_PATH` and optionally `GAME_SHOT_FRAME` (defaults to frame 120). The game saves the screenshot after the selected frame and continues running.
 
-## Controls
+## Start Building
+
+`Scenes/GameScene.cs` is the empty starting scene. Put game state and frame updates in `Update`, world drawing in `Draw`, and optional scene-specific ImGui controls in `DrawDebugUI`. Use `OnEnter` and `OnExit` to load and release scene resources.
+
+To add a scene, subclass `Scene` and register a factory in `Core/Game.cs`:
+
+```csharp
+_scenes.Register<PauseScene>(static () => new PauseScene());
+```
+
+Request transitions from a scene with `Scenes.ChangeTo<PauseScene>()`. Transitions are applied by the main loop after the current scene's update.
+
+## Development Controls
 
 | Input | Action |
 |-------|--------|
-| `WASD` / arrows | Move |
-| `Shift` | Sprint |
-| Mouse wheel | Zoom camera |
-| `E` | Reset zoom |
-| `G` | Toggle grid |
-| `R` | Restart the game scene |
-| `Esc` | Title: quit · Game: back to title |
-| `F1` | ImGui demo window |
-| `F2` | Toggle debug window |
-| `F10` | Save a screenshot (`screenshot_TIMESTAMP.png` next to the executable) |
+| `F1` | Toggle the ImGui demo window |
+| `F2` | Toggle the debug window |
+| `F10` | Save a screenshot next to the executable |
 
-The debug window (top-left, draggable) shows FPS, frame time, mouse position in
-screen and world space, player/coin state, and scene actions. It is the
-template's "editor": add sliders, toggles and tools there.
+The debug window shows frame timing, window dimensions, mouse position, and scene-specific controls. Add project-wide development tools to `UI/DebugUI.cs`.
 
-## Project layout
+## Project Layout
 
-```
-My2DGame/
-├── Program.cs            Entry point: load config, create Game, run
-├── Core/
-│   ├── Game.cs           Window + ImGui setup, main loop (update → draw → UI)
-│   ├── GameConfig.cs     JSON settings file (auto-created)
-│   ├── Scene.cs          Base class: OnEnter / Update / Draw / DrawDebugUI / OnExit
-│   └── SceneManager.cs   Lazy scene creation, switching, restarting
-├── Scenes/
-│   ├── TitleScene.cs     Menu with animated starfield
-│   └── GameScene.cs      Playable demo: tiled world, camera, coins, HUD
-├── Entities/
-│   ├── Player.cs         Movement, sprint, world bounds
-│   └── Collectible.cs    Coin: pick-up, respawn, bob + spin animation
-├── Audio/
-│   └── CoinBlip.cs       Procedural coin sound (no asset files needed)
-├── UI/
-│   └── DebugUI.cs        ImGui overlay: hotkeys, debug window, demo toggle
-└── Content/              Put textures / fonts / audio here (copied to output)
+```text
+Program.cs            Entry point
+Core/                 Game loop, settings, base scene, scene manager
+Scenes/               Starting point for game scenes
+UI/DebugUI.cs         ImGui development overlay and shortcuts
+Content/              Runtime assets, copied to the build output
 ```
 
-## Making it your own
+Files in `Content/` are copied beside the executable. Load them from `AppContext.BaseDirectory`, for example with `Path.Combine(AppContext.BaseDirectory, "Content", "textures", "background.png")`.
 
-1. **Add a scene** — subclass `Scene`, register it in `Game.cs`:
-   ```csharp
-   _scenes.Register<PauseScene>(() => new PauseScene());
-   ```
-   and switch with `Scenes.ChangeTo<PauseScene>()`.
-2. **Add assets** — drop files into `Content/` and load them relative to
-   `Raylib.GetApplicationDirectory()` (or `AppContext.BaseDirectory`).
-3. **Game feel** — the camera follow/zoom and player acceleration use
-   frame-rate independent `exp`-based smoothing; reuse the same pattern in your
-   own systems.
-4. **Editor tools** — any scene can draw ImGui widgets in `DrawDebugUI`, and
-   the global overlay lives in `UI/DebugUI.cs`.
+## Dependencies
 
-## Troubleshooting
-
-- **Missing window/blank screen** — make sure your machine has a display and,
-  on Linux, the raylib dependencies (`libasound2`/`alsa-lib`, `libx11`, etc.).
-- **Audio device** — raylib falls back gracefully, but if `InitAudioDevice`
-  fails the game still runs (sound just won't play).
+`Raylib-cs` is pinned to 7.0.1 and `rlImgui-cs` to 3.2.0. Keep these versions compatible because the ImGui backend depends on raylib's native ABI.

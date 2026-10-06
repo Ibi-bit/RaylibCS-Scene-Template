@@ -13,7 +13,7 @@ public sealed class GameConfig
     private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, FileName);
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-    public string WindowTitle { get; set; } = "My 2D Game - raylib + ImGui";
+    public string WindowTitle { get; set; } = "New Game";
     public int WindowWidth { get; set; } = 1280;
     public int WindowHeight { get; set; } = 720;
     public int TargetFps { get; set; } = 60;
@@ -21,9 +21,6 @@ public sealed class GameConfig
     public bool ResizableWindow { get; set; } = true;
     public bool StartMaximized { get; set; }
     public bool ShowDebugWindow { get; set; } = true;
-
-    /// <summary>Scene to boot into: "Title" or "Game". Handy when iterating on gameplay.</summary>
-    public string BootScene { get; set; } = "Title";
 
     public static GameConfig Load()
     {
