@@ -2,6 +2,7 @@ using My2DGame.Scenes;
 using My2DGame.UI;
 using Raylib_cs;
 using rlImGui_cs;
+using Wriggle.Core;
 
 namespace My2DGame.Core;
 

@@ -26,4 +26,16 @@
     <Content Include="Content/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Core is always available through the submodule. Optional modules stay out of the base build. -->
+    <Compile Remove="Modules/**/bin/**/*.cs" />
+    <Compile Remove="Modules/**/obj/**/*.cs" />
+    <Compile Remove="Modules/Wriggle.VisualEffects/**/*.cs" />
+    <Compile Remove="Modules/Wriggle.Physics/**/*.cs" />
+    <Compile Include="Modules/Wriggle.VisualEffects/**/*.cs"
+             Condition="'$(UseWriggleVisualEffects)' == 'true'" />
+    <Compile Include="Modules/Wriggle.Physics/**/*.cs"
+             Condition="'$(UseWrigglePhysics)' == 'true'" />
+  </ItemGroup>
+
 </Project>

@@ -39,6 +39,7 @@ The debug window shows frame timing, window dimensions, mouse position, and scen
 ```text
 Program.cs            Entry point
 Core/                 Game loop, settings, base scene, scene manager
+Modules/              Git submodules: reusable core plus optional effects and physics
 Scenes/               Starting point for game scenes
 UI/DebugUI.cs         ImGui development overlay and shortcuts
 Content/              Runtime assets, copied to the build output
@@ -49,3 +50,13 @@ Files in `Content/` are copied beside the executable. Load them from `AppContext
 ## Dependencies
 
 `Raylib-cs` is pinned to 7.0.1 and `rlImgui-cs` to 3.2.0. Keep these versions compatible because the ImGui backend depends on raylib's native ABI.
+
+## Optional modules
+
+The template includes these Git submodules:
+
+- `Wriggle.Core` provides scene lifecycle and input bindings and is included by default.
+- `Wriggle.VisualEffects` provides reusable Raylib effects. Enable it with `dotnet build -p:UseWriggleVisualEffects=true`.
+- `Wriggle.Physics` provides the current Wriggle physics source. Enable it with `dotnet build -p:UseWrigglePhysics=true` in a project that supplies the documented terrain and character contracts.
+
+Clone with submodules using `git clone --recurse-submodules`.
