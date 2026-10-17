@@ -9,6 +9,7 @@
     <AssemblyName>My2DGame</AssemblyName>
     <Version>0.1.0</Version>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <AllowUnsafeBlocks Condition="'$(UseWrigglePhysics)' == 'true'">true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
